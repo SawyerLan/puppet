@@ -1,0 +1,17 @@
+# Managed by class security
+# Do NOT modify this file directly, THx.
+MAIL_DIR	/var/spool/mail
+PASS_MAX_DAYS	60
+PASS_MIN_DAYS	6
+PASS_MIN_LEN	6
+PASS_WARN_AGE	30
+UID_MIN			  500
+UID_MAX			60000
+GID_MIN			  500
+GID_MAX			60000
+CREATE_HOME	yes
+UMASK           077
+USERGROUPS_ENAB yes
+MD5_CRYPT_ENAB yes
+ENCRYPT_METHOD SHA512
+SU_WHEEL_ONLY yes

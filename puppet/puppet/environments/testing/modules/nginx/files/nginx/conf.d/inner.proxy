@@ -1,0 +1,25 @@
+upstream middleware {
+    server taskcenter03:8081 weight=1 max_fails=2 fail_timeout=30s;
+}
+
+upstream dispatch {
+    server taskcenter03:8081 weight=1 max_fails=2 fail_timeout=30s;
+}
+
+server {
+    listen 8803;
+    server_name mid.mm.com data.mm.com;
+    location / {
+        proxy_pass http://middleware;
+    }
+    access_log  /var/log/nginx/middleware.access.log;
+}
+
+server {
+    listen 8803;
+    server_name dispatch.mm.com;
+    location / {
+        proxy_pass http://dispatch;
+    }
+    access_log  /var/log/nginx/dispatch.access.log;
+}

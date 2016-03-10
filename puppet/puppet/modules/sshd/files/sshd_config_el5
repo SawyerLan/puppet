@@ -1,0 +1,39 @@
+Port 22
+Protocol 2
+SyslogFacility AUTHPRIV
+PermitRootLogin no
+AuthorizedKeysFile	.ssh/authorized_keys
+PasswordAuthentication yes
+ChallengeResponseAuthentication no
+GSSAPIAuthentication yes
+GSSAPICleanupCredentials yes
+UsePAM no
+AcceptEnv LANG LC_CTYPE LC_NUMERIC LC_TIME LC_COLLATE LC_MONETARY LC_MESSAGES
+AcceptEnv LC_PAPER LC_NAME LC_ADDRESS LC_TELEPHONE LC_MEASUREMENT
+AcceptEnv LC_IDENTIFICATION LC_ALL LANGUAGE
+AcceptEnv XMODIFIERS
+X11Forwarding yes
+UseDNS no
+Banner /etc/ssh_banner
+KexAlgorithms  curve25519-sha256@libssh.org,diffie-hellman-group1-sha1,diffie-hellman-group14-sha1,diffie-hellman-group-exchange-sha1,diffie-hellman-group-exchange-sha256,ecdh-sha2-nistp256,ecdh-sha2-nistp384,ecdh-sha2-nistp521
+Ciphers aes128-ctr,aes192-ctr,aes256-ctr
+
+Subsystem sftp internal-sftp -l INFO -f AUTH
+Match User log_sftp
+	X11Forwarding no
+	AllowTcpForwarding no
+	ChrootDirectory /opt/log_sftp
+	ForceCommand internal-sftp
+Match User pangu
+	X11Forwarding no
+	AllowTcpForwarding no
+	ChrootDirectory /opt/pangu
+	ForceCommand internal-sftp
+Match group sftponly
+	ChrootDirectory     %h
+	X11Forwarding       no
+	AllowTcpForwarding  no
+	ForceCommand        internal-sftp
+MaxAuthTries 3
+MaxSessions 30
+

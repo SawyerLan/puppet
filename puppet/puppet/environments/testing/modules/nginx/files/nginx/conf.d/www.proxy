@@ -1,0 +1,386 @@
+upstream www_server_pool
+{
+    server 10.101.1.70:8805 weight=1 max_fails=2 fail_timeout=30s;
+}
+
+upstream verifyimagecode_server_pool
+{
+    server 10.101.12.166:10080 weight=1 max_fails=2 fail_timeout=30s;
+}
+
+upstream checkimagecode_server_pool
+{
+    server 10.101.12.166:10081 weight=1 max_fails=2 fail_timeout=30s;
+}
+
+upstream mmbpc_server_pool
+{
+    server www-cx6:8081 weight=1 max_fails=2 fail_timeout=30s;
+    #server 10.101.1.70:8086 weight=1 max_fails=2 fail_timeout=30s;
+    #server 10.101.12.176:8086 weight=1 max_fails=2 fail_timeout=30s;
+}
+
+#upstream cyds_server_pool
+#{
+#    server 10.101.1.70:8088 weight=1 max_fails=2 fail_timeout=30s;
+#}
+
+#upstream mcms_server_pool
+#{
+#    server 10.101.1.70:8082 weight=1 max_fails=2 fail_timeout=30s;
+#}
+
+upstream mmapi_server_pool
+{
+    server 10.101.1.70:8083 weight=1 max_fails=2 fail_timeout=30s;
+    #server 10.101.12.176:8083 weight=1 max_fails=2 fail_timeout=30s;
+}
+
+upstream mmforum_server_pool
+{
+    server 10.101.1.70:8084 weight=1 max_fails=2 fail_timeout=30s;
+}
+
+upstream ipadapp_server_pool
+{
+    server 10.101.1.70:8085 weight=1 max_fails=2 fail_timeout=30s;
+    #server 10.101.12.176:8085 weight=1 max_fails=2 fail_timeout=30s;
+}
+
+
+server
+{
+    listen 8804;
+    server_name i1.mm-img.com i1.mm-img.mmarket.com;
+    set $dominorHost $http_host;
+    proxy_set_header   Host  $dominorHost;
+    location /
+    {
+        proxy_pass http://www_server_pool;
+        proxy_set_header Host  $host;
+        proxy_set_header X-Forwarded-For  $remote_addr;
+    }
+}
+
+server
+{
+    listen 8804;
+    server_name mm.10086.cn ;
+    server_name_in_redirect off;
+    set $dominorHost $http_host;
+    proxy_set_header   Host  $dominorHost;
+
+    if ( $http_referer ~* (i.ifeng.com|3g.ifeng.com) ) {
+        return 200;
+        break;
+    }
+
+    location ~* ^/a/
+    {
+        rewrite ^/a/(.*) http://a.10086.cn/$1;
+	break;
+    }
+
+    location ~* ^/portal/
+    {
+    	if ($request_method = PUT )
+   	 {
+       		 return 403;
+    	 }
+
+    	if ($request_method = DELETE )
+    	{
+       		 return 403;
+    	}
+	proxy_pass http://www_server_pool;
+	break;
+    }
+
+    location ~* ^/verifyimagecode/
+    {
+        proxy_set_header        Host            $host;
+	proxy_set_header        X-Real-IP       $remote_addr;
+	proxy_set_header        X-Forwarded-For $remote_addr;
+	proxy_cache off;
+	rewrite ^/verifyimagecode/(.*)? /$1;
+	proxy_pass http://verifyimagecode_server_pool;
+	break;
+    }
+
+    location ~* ^/checkimagecode/
+    {
+        proxy_set_header        Host            $host;
+        proxy_set_header        X-Real-IP       $remote_addr;
+        proxy_set_header        X-Forwarded-For $remote_addr;
+        proxy_cache off;
+        rewrite ^/checkimagecode/(.*)? /$1;
+        proxy_pass http://checkimagecode_server_pool;
+        break;
+    }
+
+    location ~* ^/mmapi/
+    {
+        proxy_set_header        Host            $host;
+        proxy_set_header        X-Real-IP       $remote_addr;
+        proxy_set_header        X-Forwarded-For $remote_addr;
+        proxy_cache off;
+
+ #       proxy_set_header        Host            $host;
+ #       proxy_pass_header Set_Cookie;
+ #       proxy_set_header x-forward-for $remote_addr;
+ #       proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        rewrite ^/mmapi/(.*)? /$1;
+        proxy_pass http://mmapi_server_pool;
+ #       proxy_cache off;
+        break;
+    }
+
+    location ~* ^/mmforum/
+    {
+        proxy_set_header        Host            $host;
+        proxy_pass_header Set_Cookie;
+        proxy_set_header x-forward-for $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_pass http://mmforum_server_pool;
+        proxy_cache off;
+        break;
+    }
+
+        location ~ /mmbpc {
+            proxy_set_header Host $host;
+            proxy_pass_header Set_Cookie;
+            proxy_set_header x-forward-for $remote_addr;
+            proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+            proxy_pass http://mmbpc_server_pool;
+            proxy_cache off;
+            break;
+        }
+
+
+#    location ~* ^/mmbpc/
+#    {
+#        proxy_pass_header 	Set-Cookie;
+#        proxy_set_header        Host            $host;
+#        proxy_set_header        X-Real-IP       $remote_addr;
+#        proxy_set_header        X-Forwarded-For $remote_addr;
+#        proxy_cache off;
+#        rewrite ^/mmbpc/(.*)? /mmbpc/$1;
+#        proxy_pass http://mmbpc_server_pool;
+#        break;
+#    }
+#
+#    location ~* ^/mmbpc
+#    {
+#        rewrite ^/(.*)?  http://mm.10086.cn/mmbpc/;
+#        break;
+#    }
+
+#    location ~* ^/cyds/
+#    {
+#        proxy_pass_header       Set-Cookie;
+#        proxy_set_header        Host            $host;
+#        proxy_set_header        X-Real-IP       $remote_addr;
+#        proxy_set_header        X-Forwarded-For $remote_addr;
+#        proxy_cache off;
+#        rewrite ^/cyds/(.*)? /$1;
+#        proxy_pass http://cyds_server_pool;
+#        break;
+#    }
+#
+#    location ~* ^/cyds
+#    {
+#        rewrite ^/(.*)?  http://mm.10086.cn/cyds/;
+#        break;
+#    }
+
+
+#    location ~* ^/mmbpc/
+#    {
+#        proxy_pass_header       Set-Cookie;
+#        proxy_set_header        Host            $host;
+#        proxy_set_header        X-Real-IP       $remote_addr;
+#        proxy_cache off;
+#        rewrite ^/ http://mm.10086.cn ;
+#        break;
+#    }
+
+
+#     location ~* ^/mcms/
+#     {
+#         proxy_pass http://mcms_server_pool;
+#         proxy_set_header        Host            $host;
+#         proxy_pass_header Set-Cookie;
+#         proxy_set_header x-forward-for $remote_addr;
+#         proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+#         rewrite ^/mcms/(.*)? /$1;
+# 	proxy_cache off;
+# 	break;
+#     }
+#
+#     location ~* ^/mcms
+#     {
+#         rewrite ^/(.*)?  http://mm.10086.cn/mcms/;
+#         break;
+#     }
+
+#     location ~* ^/richcms/
+#     {
+#         proxy_set_header        Host            $host;
+#         proxy_pass_header Set_Cookie;
+#         proxy_set_header x-forward-for $remote_addr;
+#         proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+#         proxy_pass http://richcms_server_pool;
+# 	rewrite ^/richcms/(.*)? /$1;
+#         proxy_cache off;
+#         break;
+#     }
+# 
+#     location ~* ^/richcms
+#     {
+#         rewrite ^/(.*)?  http://mm.10086.cn/richcms/;
+#         break;
+#     }
+
+    location /
+    {
+       if ( $http_user_agent ~* "iPad" )
+        {
+            rewrite ^/ipadapp/(.*)?  /$1;
+            proxy_pass http://ipadapp_server_pool;
+            break;
+        }
+
+	if ($request_method = PUT )
+        {
+             return 403;
+        }
+
+        if ($request_method = DELETE )
+        {
+            return 403;
+        }
+        if ( $request ~* "3210016947" )
+        {
+            proxy_pass http://www_server_pool;
+            break;
+        }
+        if ( $request ~* "3210016948" )
+        {
+            proxy_pass http://www_server_pool;
+            break;
+        }
+        if ( $request ~* "3210016949" )
+        {
+            proxy_pass http://www_server_pool;
+            break;
+        }
+        if ( $request ~* "3310015839" )
+        {
+            proxy_pass http://www_server_pool;
+            break;
+        }
+        if ( $request ~* "3210016960" )
+        {
+            proxy_pass http://www_server_pool;
+            break;
+        }
+        if ( $request ~* "3210016962" )
+        {
+            proxy_pass http://www_server_pool;
+            break;
+        }
+        if ( $cookie_mmf_channelid ~* "3210016947" )
+        {
+            proxy_pass http://www_server_pool;
+            break;
+        }
+        if ( $cookie_mmf_channelid ~* "3210016948" )
+        {
+            proxy_pass http://www_server_pool;
+            break;
+        }
+        if ( $cookie_mmf_channelid ~* "3210016949" )
+        {
+            proxy_pass http://www_server_pool;
+            break;
+        }
+        if ( $cookie_mmf_channelid ~* "3310015839" )
+        {
+            proxy_pass http://www_server_pool;
+            break;
+        }
+        if ( $cookie_mmf_channelid ~* "3210016960" )
+        {
+            proxy_pass http://www_server_pool;
+            break;
+        }
+        if ( $cookie_mmf_channelid ~* "3210016962" )
+        {
+            proxy_pass http://www_server_pool;
+            break;
+        }
+	if ( $request ~* "from=www" )
+	{
+	    proxy_pass http://www_server_pool;
+            break;
+	}
+	set $flag 0;
+        if ( $http_user_agent ~* "Android" )
+        {
+             set $flag 1;
+        }
+	if ( $request ~* "^GET / HTTP" )
+	{
+	    set $flag "${flag}2";
+	}
+        if ( $flag ~* 12 )
+        {
+             rewrite ^/(.*) http://wap.i139.cn/3g/s.do?p=1&fr=mm10086 permanent;
+             break;
+        }
+
+	set $flag 0;
+        if ( $http_user_agent ~* "iphone" )
+        {
+             set $flag 1;
+        }
+        if ( $request ~* "^GET / HTTP" )
+        {
+            set $flag "${flag}2";
+        }
+        if ( $flag ~* 12 )
+        {
+            rewrite ^/(.*)?  http://wap.i139.cn/3g/l/s.do?p=1&fr=mm10086 permanent;
+             break;
+        }
+
+        proxy_set_header Host  $host;
+        proxy_set_header X-Forwarded-For  $remote_addr;
+	proxy_pass http://www_server_pool;
+	
+	 if ( $http_user_agent ~* "iPad" )
+        {
+            rewrite ^/ipadapp/(.*)?  /$1;
+            proxy_pass http://ipadapp_server_pool;
+            break;
+        }
+    }
+##################################################################
+    location ~* ^/xyb$
+    {
+     rewrite ^/(.*)?  http://mm.10086.cn/xyb/;
+     break;
+    }
+###############################################################
+    location ~* ^/apptest
+    {
+        rewrite ^/(.*)?  http://218.204.252.35/$1;
+        break;
+    }
+######################################################
+    location /fans { 
+        try_files $uri /activity.php?zb=fans&$args; 
+    }
+######################################################
+   access_log  /home/mmport/logs/nginx_proxy/www.access.log ;
+}

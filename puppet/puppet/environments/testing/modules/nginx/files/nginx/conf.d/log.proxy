@@ -1,0 +1,16 @@
+upstream log_server_pool {
+    server www-cx1:8001 weight=1 max_fails=2 fail_timeout=30s;
+}
+server {
+    listen 8804;
+    server_name log.mm.10086.cn;
+    set $dominorHost $http_host;
+    proxy_set_header   Host  $dominorHost;
+    location / {
+            proxy_pass http://log_server_pool;
+            #allow 121.8.124.244,61.140.101.142;
+            #allow 61.140.101.142;
+            #deny  all;
+    }
+    access_log  /var/log/nginx/log.access.log;
+}

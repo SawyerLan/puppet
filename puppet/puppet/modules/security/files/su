@@ -1,0 +1,16 @@
+#%PAM-1.0
+# Managed by class security
+# Do NOT modify this file directly, THx.
+
+auth		sufficient	pam_rootok.so
+auth		required	pam_wheel.so group=wheel
+# Uncomment the following line to implicitly trust users in the "wheel" group.
+#auth		sufficient	pam_wheel.so trust use_uid
+# Uncomment the following line to require a user to be in the "wheel" group.
+auth		required	pam_wheel.so use_uid
+auth		include		system-auth
+account		sufficient	pam_succeed_if.so uid = 0 use_uid quiet
+account		include		system-auth
+password	include		system-auth
+session		include		system-auth
+session		optional	pam_xauth.so

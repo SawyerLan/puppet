@@ -1,0 +1,6 @@
+$ORIGIN mm.10086.mmarket.com.
+$TTL 3600
+@               IN      SOA     wwwdns1.mmarket.com. hostmaster.mm.10086.mmarket.com. ( 2014112101 1800 900 604800 86400 )
+                IN      NS      wwwdns1.mmarket.com.
+                IN      NS      wwwdns2.mmarket.com.
+                IN      A       58.67.220.197

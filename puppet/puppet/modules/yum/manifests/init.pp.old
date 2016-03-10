@@ -1,0 +1,25 @@
+class yum::install {
+	package { "yum":
+		ensure => installed,
+	}
+}
+
+class yum::config_repo {
+	if $operatingsystemmajrelease == "5" {
+		$baseurl = "http://ftp.example.com/ftp/$operatingsystem/\$releasever/\$basearch/Server"
+	} else {
+		$baseurl = "http://ftp.example.com/ftp/$operatingsystem/\$releasever/\$basearch/"
+	}
+
+	yumrepo { base:
+		descr => "$operatingsystem - \$releasever - \$basearch",
+		baseurl => "$baseurl",
+		gpgkey => "http://ftp.example.com/ftp/$operatingsystem/\$releasever/\$basearch/RPM-GPG-KEY-redhat-release",
+		gpgcheck => "1",
+		enabled => "1",
+	}
+}
+
+class yum {
+	include yum::install, yum::config_repo
+}

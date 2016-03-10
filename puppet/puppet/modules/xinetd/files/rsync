@@ -1,0 +1,15 @@
+# This file is being maintained by Puppet.
+# DO NOT EDIT
+
+service rsync
+{
+        disable = no
+        flags           = IPv4
+        socket_type     = stream
+        wait            = no
+        user            = root
+        server          = /usr/bin/rsync
+        server_args     = --daemon
+        log_on_failure  += USERID
+}
+

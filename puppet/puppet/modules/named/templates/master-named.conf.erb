@@ -1,0 +1,142 @@
+options {
+	listen-on port 53 { any; };
+	directory 	"/var/named";
+	dump-file 	"/var/named/data/cache_dump.db";
+	statistics-file "/var/named/data/named_stats.txt";
+	memstatistics-file "/var/named/data/named_mem_stats.txt";
+	version "God Bless You!";
+	allow-query     { any; };
+	recursion	yes;
+	allow-recursion {<%- scope.lookupvar("named::params::allow_recursion").each do |a| %>
+		<%= a %>;<%- end %>
+	};
+	notify	explicit;
+
+	blackhole {<%- scope.lookupvar("named::params::blackhole").each do |b| %>
+		<%= b %>;<%- end %>
+	};
+
+	dnssec-enable no;
+	dnssec-validation no;
+	dnssec-lookaside auto;
+
+	/* Path to ISC DLV key */
+	bindkeys-file "/etc/named.iscdlv.key";
+
+	managed-keys-directory "/var/named/dynamic";
+};
+
+include "/etc/rndc.key";
+controls {
+	inet 127.0.0.1 port 953
+	allow { 127.0.0.1; } keys { "rndc-key"; };
+};
+
+logging {
+	channel default_debug {
+		file "data/named.run" versions 9 size 10m;
+		severity info;
+		print-time yes;
+	};
+
+	channel query_log {
+		file "data/query.log" versions 9 size 100m;
+		severity info;
+		print-time yes;
+		print-category yes;
+	};
+
+	category queries {
+		query_log;
+	};
+};
+
+include "acl/cmcc.acl";
+
+view "CMCC" {
+	key "cmcc" {
+        	algorithm hmac-md5;
+        	secret "QaYvSfyi2vqRsh5RyeIf3g==";
+	};
+	match-clients { key cmcc; cmcc; };
+	server <%= scope.lookupvar("named::params::ip_slave") %> { keys cmcc; };
+
+	zone "." IN {
+                type forward;
+                forwarders { <%- scope.lookupvar("named::params::forwarders").each do |f| %><%= f %>; <%- end %>};
+	};
+
+	include "/etc/named.rfc1912.zones";
+	include "/etc/named.root.key";
+
+        zone "example.com"
+        {
+                type master;
+                file "zone/named.example.com.cmcc";
+                allow-transfer { key cmcc; };
+                also-notify { <%= scope.lookupvar("named::params::ip_slave") %>; };
+                allow-update { none; };
+        };
+
+        zone "101.10.in-addr.arpa"
+        {
+                type master;
+                file "zone/named.101.10.cmcc";
+                allow-transfer { key cmcc; };
+                also-notify { <%= scope.lookupvar("named::params::ip_slave") %>; };
+                allow-update { none; };
+        };
+
+	zone "mm.10086.mmarket.com"
+	{
+		type master;
+		file "zone/named.mm.10086.mmarket.com.cmcc";
+		allow-transfer { key cmcc; };
+		also-notify { <%= scope.lookupvar("named::params::ip_slave") %>; };
+        	allow-update { none; };
+	};
+};
+
+view "ANY" {
+	key "any" {
+                algorithm hmac-md5;
+                secret "SN059FBTilVZqiSx5YVJqg==";
+        };
+	match-clients { key any; any; };
+	server <%= scope.lookupvar("named::params::ip_slave") %> { keys any; };
+
+	zone "." IN {
+                type forward;
+                forwarders { <%- scope.lookupvar("named::params::forwarders").each do |f| %><%= f %>; <%- end %>};
+	};
+
+	include "/etc/named.rfc1912.zones";
+	include "/etc/named.root.key";
+
+        zone "example.com"
+        {
+                type master;
+                file "zone/named.example.com";
+                allow-transfer { key any; };
+                also-notify { <%= scope.lookupvar("named::params::ip_slave") %>; };
+                allow-update { none; };
+        };
+
+	zone "101.10.in-addr.arpa"
+	{
+		type master;
+		file "zone/named.101.10";
+		allow-transfer { key any; };
+		also-notify { <%= scope.lookupvar("named::params::ip_slave") %>; };
+		allow-update { none; };
+	};
+
+	zone "mm.10086.mmarket.com"
+        {
+                type master;
+                file "zone/named.mm.10086.mmarket.com";
+		allow-transfer { key any; };
+                also-notify { <%= scope.lookupvar("named::params::ip_slave") %>; };
+                allow-update { none; };
+        };
+};

@@ -1,0 +1,3 @@
+/home/mmport/storage/static	10.101.1.0/24(rw,sync,no_root_squash)	10.101.12.0/24(rw,sync,no_root_squash)
+/home/mmport/storage/data	10.101.1.0/24(rw,sync,no_root_squash)   10.101.12.0/24(rw,sync,no_root_squash)
+/opt/log_sftp/upload	10.101.1.46/32(rw,sync,no_root_squash)

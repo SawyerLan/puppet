@@ -1,0 +1,20 @@
+upstream zabbix_server_pool {
+    server www-cx1:8001 weight=1 max_fails=2 fail_timeout=30s;
+}
+
+server {
+    listen 8804;
+    server_name zabbix.mm.10086.cn;
+    set $dominorHost $http_host;
+    proxy_set_header   Host  $dominorHost;
+    location / {
+	    proxy_set_header Host  $host;
+            proxy_set_header X-Forwarded-For  $remote_addr;
+            proxy_pass http://zabbix_server_pool;
+            allow 121.8.124.244;
+            allow 58.248.29.11;
+	    allow 61.144.147.191;
+            deny  all;
+    }
+    access_log  /var/log/nginx/zabbix.access.log ;
+}

@@ -1,0 +1,7 @@
+# Managed by class ip6tables
+# Do NOT modify this file directly, THx.
+*filter
+:INPUT ACCEPT [0:0]
+:FORWARD ACCEPT [0:0]
+:OUTPUT ACCEPT [0:0]
+COMMIT

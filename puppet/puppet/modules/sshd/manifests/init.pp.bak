@@ -1,0 +1,31 @@
+class sshd::install {
+	package { "openssh-server":
+		ensure => present,
+	}
+}
+
+class sshd::config {
+	file { "/etc/ssh/sshd_config":
+		ensure => present,
+		owner => 'root',
+		group => 'root',
+		mode => 0600,
+		source => "puppet:///modules/sshd/sshd_config",
+		require => Class[sshd::install],
+		notify => Class[sshd::service],
+	}
+}
+
+class sshd::service {
+	service { "sshd":
+		ensure => running,
+		hasstatus => true,
+		hasrestart => true,
+		enable => true,
+		require => Class["sshd::config"],
+	}
+}
+
+class sshd {
+	include sshd::install, sshd::config, sshd::service
+}

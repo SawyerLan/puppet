@@ -1,0 +1,6 @@
+# Managed by class <%= scope.source.name %>
+# Need modify this file ? Contact<%- contacts.each do |a| %> <%= a %><%- end %> , THx.
+search		<%= domain %>
+nameserver	<%= scope.lookupvar("named::params::ip_master") %>
+nameserver	<%= scope.lookupvar("named::params::ip_slave") %><%- scope.lookupvar("named::params::forwarders").each do |f| %>
+nameserver	<%= f %><%- end %>

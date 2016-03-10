@@ -1,0 +1,19 @@
+# Managed by class <%= scope.source.name %>
+# Need modify this file ? Contact<%- contacts.each do |a| %> <%= a %><%- end %> , THx.
+
+# User alias specification
+User_Alias      OPER_SUDOUSER=sudouser
+User_Alias      OPER_SUPER=mon724,sudoroot,gdmm34,gdmm65,gdmm301,mmport,cx003,weihu,middle
+
+# Cmnd alias specification
+Cmnd_Alias      KILL=/bin/kill
+Cmnd_Alias      ROOT=/bin/su -
+Cmnd_Alias      SU=/bin/su
+
+# User privilege specification
+OPER_SUDOUSER     ALL = KILL
+OPER_SUPER        ALL = KILL,ROOT,SU
+
+gdmm301	ALL = NOPASSWD:/bin/su - mmport
+cx003	ALL = NOPASSWD:/bin/su - mmos
+zabbix	ALL = NOPASSWD:/sbin/fdisk -l,/sbin/multipath -ll,/opt/aspire/product/zabbix/bin/

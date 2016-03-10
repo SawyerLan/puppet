@@ -1,0 +1,11 @@
+#%PAM-1.0
+# Managed by class security
+# Do NOT modify this file directly, THx.
+
+auth       include      system-auth
+account    required     pam_nologin.so
+account    include      system-auth
+password   include      system-auth
+session    optional     pam_keyinit.so force revoke
+session    include      system-auth
+session    required     pam_loginuid.so
